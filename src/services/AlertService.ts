@@ -11,6 +11,7 @@ export async function sendLiveAlert(
   client: Client,
   channelId: string,
   status: LiveStatus,
+  roleId?: string,
 ): Promise<boolean> {
   try {
     const channel = await client.channels.fetch(channelId);
@@ -24,6 +25,7 @@ export async function sendLiveAlert(
     const row = createWatchButtonRow(status.url, status.platform);
 
     await (channel as TextChannel).send({
+      content: roleId ? `<@&${roleId}>` : undefined,
       embeds: [embed],
       components: [row],
     });
@@ -51,7 +53,11 @@ export class AlertService {
   /**
    * Send a live alert
    */
-  async sendAlert(channelId: string, status: LiveStatus): Promise<boolean> {
-    return sendLiveAlert(this.client, channelId, status);
+  async sendAlert(
+    channelId: string,
+    status: LiveStatus,
+    roleId?: string,
+  ): Promise<boolean> {
+    return sendLiveAlert(this.client, channelId, status, roleId);
   }
 }

@@ -17,6 +17,8 @@ export interface Streamer {
   displayName?: string;
   /** Discord channel ID for notifications */
   channelId: string;
+  /** Discord role ID to ping on notifications (optional) */
+  roleId?: string;
   /** Current live status */
   isLive: boolean;
   /** Last time detected live (ISO timestamp) */

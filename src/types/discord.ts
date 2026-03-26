@@ -45,6 +45,7 @@ export const ButtonIds = {
  */
 export const SelectMenuIds = {
   CHANNEL_SELECT: "channel_select",
+  ROLE_SELECT: "role_select",
   STREAMER_SELECT: "streamer_select",
   HELP_CATEGORY: "help_category",
 } as const;
@@ -63,6 +64,8 @@ export interface InteractionData {
   platform?: string;
   /** Username for add flow */
   username?: string;
+  /** Channel ID carried through the add flow */
+  channelId?: string;
 }
 
 /**

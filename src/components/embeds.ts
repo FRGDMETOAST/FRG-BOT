@@ -181,6 +181,26 @@ export function createAddPromptEmbed(
 }
 
 /**
+ * Create the role selection prompt embed (step 2 of add flow)
+ */
+export function createRolePromptEmbed(
+  platform: Platform,
+  username: string,
+  channelId: string,
+): EmbedBuilder {
+  const platformConfig = PLATFORMS[platform];
+
+  return new EmbedBuilder()
+    .setColor(platformConfig.color)
+    .setTitle(`${platformConfig.emoji} Add ${platformConfig.name} Streamer`)
+    .setDescription(
+      `Adding: **${username}** on ${platformConfig.name}\n` +
+        `Notifications → <#${channelId}>\n\n` +
+        `Select a role to ping when they go live, or skip to finish without a ping role:`,
+    );
+}
+
+/**
  * Create a success embed
  */
 export function createSuccessEmbed(

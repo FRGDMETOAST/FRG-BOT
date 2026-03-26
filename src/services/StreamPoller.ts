@@ -131,7 +131,7 @@ export class StreamPoller {
       (!lastData?.isLive || (status.title && lastData.title !== status.title));
 
     if (shouldAlert) {
-      await sendLiveAlert(this.client, streamer.channelId, status);
+      await sendLiveAlert(this.client, streamer.channelId, status, streamer.roleId);
 
       // Update cache
       lastLiveData.set(cacheKey, {

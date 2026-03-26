@@ -11,7 +11,6 @@ export async function sendLiveAlert(
   client: Client,
   channelId: string,
   status: LiveStatus,
-  roleId?: string,
 ): Promise<boolean> {
   try {
     const channel = await client.channels.fetch(channelId);

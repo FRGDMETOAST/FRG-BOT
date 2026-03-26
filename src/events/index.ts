@@ -10,7 +10,9 @@ import { logger } from "../utils/logger.js";
 export function registerEvents(client: StreamerBot): void {
   // Ready event (once)
   client.once(Events.ClientReady, () => {
-    handleReady(client);
+    handleReady(client).catch((error) => {
+      logger.error("Error in ready handler:", error);
+    });
   });
 
   // Interaction create event

@@ -30,18 +30,12 @@ export async function handleSelectMenu(
 ): Promise<void> {
   const data = decodeCustomId(interaction.customId);
 
-  if (!data) {
-    return;
-  }
+  if (!data) return;
 
   switch (data.action) {
     case "channel_select":
-      if (interaction.isChannelSelectMenu()) {
-        await handleChannelSelect(
-          interaction,
-          data.platform as Platform,
-          data.username!,
-        );
+      if (interaction.isChannelSelectMenu() && data.platform && data.username) {
+        await handleChannelSelect(interaction, data.platform, data.username);
       }
       break;
 
@@ -66,16 +60,13 @@ async function handleChannelSelect(
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({
-      embeds: [
-        createErrorEmbed("Error", "This command can only be used in a server."),
-      ],
+      embeds: [createErrorEmbed("Error", "This command can only be used in a server.")],
       components: [],
     });
     return;
   }
 
   const channelId = interaction.values[0];
-
   if (!channelId) {
     await interaction.update({
       embeds: [createErrorEmbed("Error", "No channel selected.")],
@@ -84,7 +75,6 @@ async function handleChannelSelect(
     return;
   }
 
-  // Create streamer object
   const streamerId = createStreamerId(platform, username);
   const streamer: Streamer = {
     id: streamerId,
@@ -94,7 +84,6 @@ async function handleChannelSelect(
     isLive: false,
   };
 
-  // Add to database
   const success = addStreamer(interaction.guildId, streamer);
 
   if (!success) {
@@ -118,7 +107,7 @@ async function handleChannelSelect(
     const checker = getChecker(platform);
     const status = await checker(username);
 
-    // Update streamer data with live status
+    // Update streamer with live info
     updateStreamer(interaction.guildId, streamerId, {
       isLive: status.isLive,
       title: status.title,
@@ -131,16 +120,18 @@ async function handleChannelSelect(
       lastLiveAt: status.isLive ? new Date().toISOString() : undefined,
     });
 
+    // Use roleId if stored in the streamer object (optional)
+    const roleId = (streamer as Streamer & { roleId?: string }).roleId;
+
     if (status.isLive) {
-      // Send immediate alert
       await sendLiveAlert(interaction.client, channelId, status, roleId);
 
       await interaction.update({
         embeds: [
           createSuccessEmbed(
             "Streamer Added",
-            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>\n\n` +
-              `🔴 **They're currently LIVE!** An alert has been sent.`,
+            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>` +
+              `${roleId ? ` (pinging <@&${roleId}>)` : ""}\n\n🔴 **They're currently LIVE!** An alert has been sent.`,
           ),
         ],
         components: [],
@@ -150,21 +141,21 @@ async function handleChannelSelect(
         embeds: [
           createSuccessEmbed(
             "Streamer Added",
-            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>\n\n` +
-              `They're currently offline. You'll be notified when they go live!`,
+            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>` +
+              `${roleId ? ` (pinging <@&${roleId}>)` : ""}\n\nThey're currently offline. You'll be notified when they go live!`,
           ),
         ],
         components: [],
       });
     }
   } catch (error) {
-    // Still added, but couldn't check live status
     logger.error(`Error checking live status for ${username}:`, error);
     await interaction.update({
       embeds: [
         createSuccessEmbed(
           "Streamer Added",
-          `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>`,
+          `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>` +
+            `${roleId ? ` (pinging <@&${roleId}>)` : ""}`,
         ),
       ],
       components: [],
@@ -180,16 +171,13 @@ async function handleStreamerSelect(
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({
-      embeds: [
-        createErrorEmbed("Error", "This command can only be used in a server."),
-      ],
+      embeds: [createErrorEmbed("Error", "This command can only be used in a server.")],
       components: [],
     });
     return;
   }
 
   const streamerId = interaction.values[0];
-
   if (!streamerId) {
     await interaction.update({
       embeds: [createErrorEmbed("Error", "No streamer selected.")],
@@ -198,23 +186,15 @@ async function handleStreamerSelect(
     return;
   }
 
-  // Get streamer info
   const streamer = getStreamer(interaction.guildId, streamerId);
-
   if (!streamer) {
     await interaction.update({
-      embeds: [
-        createErrorEmbed(
-          "Error",
-          "Streamer not found. It may have already been removed.",
-        ),
-      ],
+      embeds: [createErrorEmbed("Error", "Streamer not found. It may have already been removed.")],
       components: [],
     });
     return;
   }
 
-  // Show confirmation
   const embed = createRemoveConfirmEmbed(streamer);
   const buttons = createConfirmButtons(streamerId);
 

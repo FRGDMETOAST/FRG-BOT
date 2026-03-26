@@ -48,11 +48,16 @@ export async function handleSelectMenu(
 
     case "role_select":
       if (interaction.isRoleSelectMenu()) {
-        // Remove channelId from call
+        // Get channelId from DB/temp storage
+        const streamerId = createStreamerId(data.platform, data.username!);
+        const existingStreamer = getStreamer(interaction.guildId!, streamerId);
+        const channelId = existingStreamer?.channelId;
+
         await handleRoleSelect(
           interaction,
           data.platform as Platform,
           data.username!,
+          channelId, // Pass channelId as the 4th argument
         );
       }
       break;
@@ -94,7 +99,6 @@ async function handleChannelSelect(
   }
 
   // Advance to role selection step
-  // Pass channelId to menu/embed indirectly via customId or store in DB/temp storage
   const embed = createRolePromptEmbed(platform, username);
   const roleSelect = createRoleSelect(platform, username);
 
@@ -104,7 +108,14 @@ async function handleChannelSelect(
   });
 
   // Optionally: store channelId temporarily for later retrieval in handleRoleSelect
-  // e.g., addStreamer(interaction.guildId, { platform, username, channelId }) here or in DB
+  const streamerId = createStreamerId(platform, username);
+  addStreamer(interaction.guildId, {
+    id: streamerId,
+    platform,
+    username,
+    channelId,
+    isLive: false,
+  });
 }
 
 /**
@@ -114,6 +125,7 @@ async function handleRoleSelect(
   interaction: RoleSelectMenuInteraction,
   platform: Platform,
   username: string,
+  channelId?: string, // <- new argument
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({
@@ -123,12 +135,7 @@ async function handleRoleSelect(
     return;
   }
 
-  const roleId = interaction.values[0] as string | undefined;
-
-  // Retrieve channelId from DB or temp storage
-  const streamerId = createStreamerId(platform, username);
-  const existingStreamer = getStreamer(interaction.guildId, streamerId);
-  if (!existingStreamer || !existingStreamer.channelId) {
+  if (!channelId) {
     await interaction.update({
       embeds: [createErrorEmbed("Error", "Channel not found for this streamer.")],
       components: [],
@@ -136,8 +143,9 @@ async function handleRoleSelect(
     return;
   }
 
-  const channelId = existingStreamer.channelId;
+  const roleId = interaction.values[0] as string | undefined;
 
+  const streamerId = createStreamerId(platform, username);
   const streamer: Streamer = {
     id: streamerId,
     platform,

@@ -43,7 +43,6 @@ export function createRoleSelect(
     action: "role_select",
     platform,
     username,
-    channelId,
   });
 
   const menu = new RoleSelectMenuBuilder()

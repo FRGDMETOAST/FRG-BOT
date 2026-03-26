@@ -21,15 +21,11 @@ export async function sendLiveAlert(
       return false;
     }
 
-       // If channel is not a TextChannel (could be ThreadChannel, Voice, etc.), cast safely
-    const textChannel = channel as TextChannel;
-
-    // Prepare role mention if provided
-    const roleMention = roleId ? `<@&${1486462706318835866}> ` : "";
-
+    // Prepare embed and button row
     const embed = createLiveEmbed(status);
     const row = createWatchButtonRow(status.url, status.platform);
 
+    // Send message with optional role ping
     await (channel as TextChannel).send({
       content: roleId ? `<@&${roleId}>` : undefined,
       embeds: [embed],
@@ -45,7 +41,6 @@ export async function sendLiveAlert(
     return false;
   }
 }
-
 /**
  * Alert service class for managing live notifications
  */

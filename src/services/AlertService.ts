@@ -27,7 +27,7 @@ export async function sendLiveAlert(
 
     // Send message with optional role ping
     await (channel as TextChannel).send({
-      content: roleId ? `<@&${roleId}>` : undefined,
+      content: roleId ? `<@&${1351291145564717076}>` : undefined,
       embeds: [embed],
       components: [row],
     });

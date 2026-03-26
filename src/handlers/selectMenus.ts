@@ -98,8 +98,8 @@ async function handleChannelSelect(
   }
 
   // Advance to role selection step
-  const embed = createRolePromptEmbed(platform, username, channelId);
-  const roleSelect = createRoleSelect(platform, username, channelId);
+  const embed = createRolePromptEmbed(platform, username);
+  const roleSelect = createRoleSelect(platform, username);
 
   await interaction.update({
     embeds: [embed],

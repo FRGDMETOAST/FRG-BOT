@@ -59,7 +59,6 @@ export class AlertService {
   async sendAlert(
     channelId: string,
     status: LiveStatus,
-    roleId?: string,
   ): Promise<boolean> {
     return sendLiveAlert(this.client, channelId, status, roleId);
   }

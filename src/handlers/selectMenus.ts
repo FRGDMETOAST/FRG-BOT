@@ -133,7 +133,7 @@ async function handleChannelSelect(
 
     if (status.isLive) {
       // Send immediate alert
-      await sendLiveAlert(interaction.client, channelId, status, roleID);
+      await sendLiveAlert(interaction.client, channelId, status, roleId);
 
       await interaction.update({
         embeds: [

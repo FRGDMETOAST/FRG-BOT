@@ -1,7 +1,6 @@
 import {
   ActionRowBuilder,
   ChannelSelectMenuBuilder,
-  RoleSelectMenuBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
   ChannelType,
@@ -29,29 +28,6 @@ export function createChannelSelect(
     .setChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement);
 
   return new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(menu);
-}
-
-/**
- * Create a role select menu for choosing a role to ping on notifications
- */
-export function createRoleSelect(
-  platform: Platform,
-  username: string,
-  channelId: string,
-): ActionRowBuilder<RoleSelectMenuBuilder> {
-  const customId = encodeCustomId({
-    action: "role_select",
-    platform,
-    username,
-  });
-
-  const menu = new RoleSelectMenuBuilder()
-    .setCustomId(customId)
-    .setPlaceholder("Select a role to ping (optional)")
-    .setMinValues(0)
-    .setMaxValues(1);
-
-  return new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(menu);
 }
 
 /**

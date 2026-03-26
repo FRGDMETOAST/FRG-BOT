@@ -76,6 +76,7 @@ async function handleChannelSelect(
   interaction: ChannelSelectMenuInteraction,
   platform: Platform,
   username: string,
+  channelId: string,
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({

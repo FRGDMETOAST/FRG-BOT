@@ -1,6 +1,7 @@
 import {
   StringSelectMenuInteraction,
   ChannelSelectMenuInteraction,
+  RoleSelectMenuInteraction,
   AnySelectMenuInteraction,
 } from "discord.js";
 import { decodeCustomId } from "../types/discord.js";
@@ -15,8 +16,10 @@ import {
   createSuccessEmbed,
   createErrorEmbed,
   createRemoveConfirmEmbed,
+  createRolePromptEmbed,
 } from "../components/embeds.js";
 import { createConfirmButtons } from "../components/buttons.js";
+import { createRoleSelect } from "../components/menus.js";
 import { PLATFORMS } from "../utils/constants.js";
 import { logger } from "../utils/logger.js";
 import { getChecker } from "../platforms/index.js";
@@ -45,6 +48,17 @@ export async function handleSelectMenu(
       }
       break;
 
+    case "role_select":
+      if (interaction.isRoleSelectMenu()) {
+        await handleRoleSelect(
+          interaction,
+          data.platform as Platform,
+          data.username!,
+          data.channelId!,
+        );
+      }
+      break;
+
     case "streamer_select":
       if (interaction.isStringSelectMenu()) {
         await handleStreamerSelect(interaction);
@@ -57,7 +71,7 @@ export async function handleSelectMenu(
 }
 
 /**
- * Handle channel selection for adding a streamer
+ * Handle channel selection for adding a streamer — advances to role selection step
  */
 async function handleChannelSelect(
   interaction: ChannelSelectMenuInteraction,
@@ -84,6 +98,38 @@ async function handleChannelSelect(
     return;
   }
 
+  // Advance to role selection step
+  const embed = createRolePromptEmbed(platform, username, channelId);
+  const roleSelect = createRoleSelect(platform, username, channelId);
+
+  await interaction.update({
+    embeds: [embed],
+    components: [roleSelect],
+  });
+}
+
+/**
+ * Handle role selection — final step of the add streamer flow
+ */
+async function handleRoleSelect(
+  interaction: RoleSelectMenuInteraction,
+  platform: Platform,
+  username: string,
+  channelId: string,
+): Promise<void> {
+  if (!interaction.guildId) {
+    await interaction.update({
+      embeds: [
+        createErrorEmbed("Error", "This command can only be used in a server."),
+      ],
+      components: [],
+    });
+    return;
+  }
+
+  // Role is optional — the user may have submitted with 0 selections
+  const roleId = interaction.values[0] as string | undefined;
+
   // Create streamer object
   const streamerId = createStreamerId(platform, username);
   const streamer: Streamer = {
@@ -91,6 +137,7 @@ async function handleChannelSelect(
     platform,
     username,
     channelId,
+    roleId,
     isLive: false,
   };
 
@@ -113,6 +160,8 @@ async function handleChannelSelect(
   const platformConfig = PLATFORMS[platform];
   logger.info(`Added streamer ${streamerId} to guild ${interaction.guildId}`);
 
+  const roleMention = roleId ? ` • Pinging <@&${roleId}>` : "";
+
   // Immediately check if streamer is live
   try {
     const checker = getChecker(platform);
@@ -133,13 +182,13 @@ async function handleChannelSelect(
 
     if (status.isLive) {
       // Send immediate alert
-      await sendLiveAlert(interaction.client, channelId, status);
+      await sendLiveAlert(interaction.client, channelId, status, roleId);
 
       await interaction.update({
         embeds: [
           createSuccessEmbed(
             "Streamer Added",
-            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>\n\n` +
+            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>${roleMention}\n\n` +
               `🔴 **They're currently LIVE!** An alert has been sent.`,
           ),
         ],
@@ -150,7 +199,7 @@ async function handleChannelSelect(
         embeds: [
           createSuccessEmbed(
             "Streamer Added",
-            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>\n\n` +
+            `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>${roleMention}\n\n` +
               `They're currently offline. You'll be notified when they go live!`,
           ),
         ],
@@ -164,7 +213,7 @@ async function handleChannelSelect(
       embeds: [
         createSuccessEmbed(
           "Streamer Added",
-          `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>`,
+          `**${username}** (${platformConfig.name}) will send notifications to <#${channelId}>${roleMention}`,
         ),
       ],
       components: [],

@@ -35,29 +35,34 @@ export async function handleSelectMenu(
 
   if (!data) return;
 
+  // Ensure required fields exist
+  if (!data.platform || !data.username) {
+    logger.warn(`Invalid select menu data: ${JSON.stringify(data)}`);
+    return;
+  }
+
   switch (data.action) {
     case "channel_select":
       if (interaction.isChannelSelectMenu()) {
         await handleChannelSelect(
           interaction,
           data.platform as Platform,
-          data.username!,
+          data.username,
         );
       }
       break;
 
     case "role_select":
       if (interaction.isRoleSelectMenu()) {
-        // Get channelId from DB/temp storage
-        const streamerId = createStreamerId(data.platform, data.username!);
+        const streamerId = createStreamerId(data.platform as Platform, data.username);
         const existingStreamer = getStreamer(interaction.guildId!, streamerId);
         const channelId = existingStreamer?.channelId;
 
         await handleRoleSelect(
           interaction,
           data.platform as Platform,
-          data.username!,
-          channelId, // Pass channelId as the 4th argument
+          data.username,
+          channelId, // safely pass channelId
         );
       }
       break;
@@ -107,7 +112,7 @@ async function handleChannelSelect(
     components: [roleSelect],
   });
 
-  // Optionally: store channelId temporarily for later retrieval in handleRoleSelect
+  // Store channelId temporarily
   const streamerId = createStreamerId(platform, username);
   addStreamer(interaction.guildId, {
     id: streamerId,
@@ -125,7 +130,7 @@ async function handleRoleSelect(
   interaction: RoleSelectMenuInteraction,
   platform: Platform,
   username: string,
-  channelId?: string, // <- new argument
+  channelId?: string,
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({
@@ -190,6 +195,7 @@ async function handleRoleSelect(
     });
 
     if (status.isLive) {
+      // Pass roleId to sendLiveAlert
       await sendLiveAlert(interaction.client, channelId, status, roleId);
 
       await interaction.update({

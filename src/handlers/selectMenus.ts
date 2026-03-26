@@ -54,7 +54,6 @@ export async function handleSelectMenu(
           interaction,
           data.platform as Platform,
           data.username!,
-          data.channelId!,
         );
       }
       break;
@@ -115,7 +114,6 @@ async function handleRoleSelect(
   interaction: RoleSelectMenuInteraction,
   platform: Platform,
   username: string,
-  channelId: string,
 ): Promise<void> {
   if (!interaction.guildId) {
     await interaction.update({

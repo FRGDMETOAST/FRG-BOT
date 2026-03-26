@@ -26,11 +26,11 @@ export async function sendLiveAlert(
 
     // Send message with optional role ping
     await (channel as TextChannel).send({
-  content: `<@&${1088210231345025024}>`,
+  content: `<@&${1486581084903833610}>`,
   embeds: [embed],
   components: [row],
   allowedMentions: {
-    roles: ["1088210231345025024"],
+    roles: ["1486581084903833610"],
   },
 });
     

@@ -31,7 +31,7 @@ export async function sendLiveAlert(
   embeds: [embed],
   components: [row],
   allowedMentions: {
-    roles: roleId ? [1351291145564717076] : [],
+    roles: roleId ? [String(1351291145564717076)] : [],
   },
 });
     

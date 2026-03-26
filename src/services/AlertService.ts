@@ -60,6 +60,6 @@ export class AlertService {
     channelId: string,
     status: LiveStatus,
   ): Promise<boolean> {
-    return sendLiveAlert(this.client, channelId, status, roleId);
+    return sendLiveAlert(this.client, channelId, status);
   }
 }
